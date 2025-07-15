@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Identicon Generator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+
+    h1 {
+      font-size: 40px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      max-width: 100%;
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      image-rendering: pixelated;
+      width: 90vw;
+      max-width: 400px;
+      height: auto;
+    }
+
+    select, button, input {
+      font-size: 16px;
+      padding: 8px 12px;
+    }
+
+    button {
+      width: 250px;
+    }
+
+    @media (min-width: 600px) {
+      canvas {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Identicon Generator</h1>
+
+  <div class="container">
+    <label for="tileSize">Tile Count:
+      <select id="tileSize" onchange="generateIdenticon()">
+        <option value="5">5 x 5</option>
+        <option value="6">6 x 6</option>
+        <option value="7">7 x 7</option>
+        <option value="8" selected>8 x 8</option>
+        <option value="9">9 x 9</option>
+        <option value="10">10 x 10</option>
+      </select>
+    </label>
+
+    <!-- NEW: Input for user text -->
+    <input type="text" id="inputText" placeholder="Enter text (e.g., username)" oninput="generateIdenticon()"/>
+
+    <canvas id="identicon"></canvas>
+
+    <div class="btn-container">
+      <button onclick="generateIdenticon()">Generate</button>
+      <button onclick="downloadPNG()">Download</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('identicon');
+    const ctx = canvas.getContext('2d');
+
+    function generateIdenticon() {
+      const tileSize = parseInt(document.getElementById('tileSize').value);
+      const input = document.getElementById('inputText').value || Math.random().toString();
+
+      const hash = sha256(input); // NEW
+
+      const screenWidth = Math.min(window.innerWidth * 0.9, 400);
+      const cellSize = Math.floor(screenWidth / tileSize);
+      const canvasSize = cellSize * tileSize;
+
+      canvas.width = canvasSize;
+      canvas.height = canvasSize;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const color = getColorFromHash(hash); // NEW
+
+      const pattern = [];
+      for (let row = 0; row < tileSize; row++) {
+        pattern[row] = [];
+        for (let col = 0; col < Math.ceil(tileSize / 2); col++) {
+          const i = row * Math.ceil(tileSize / 2) + col;
+          const fill = parseInt(hash[i], 16) % 2 === 0; // NEW
+          pattern[row][col] = fill;
+          pattern[row][tileSize - col - 1] = fill;
+        }
+      }
+
+      for (let row = 0; row < tileSize; row++) {
+        for (let col = 0; col < tileSize; col++) {
+          if (pattern[row][col]) {
+            ctx.fillStyle = color;
+            ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+    }
+
+    function getColorFromHash(hash) {
+      const hue = parseInt(hash.slice(0, 6), 16) % 360;
+      return `hsl(${hue}, 100%, 40%)`;
+    }
+
+    // NEW: SHA-256 hash function
+    function sha256(str) {
+      const buffer = new TextEncoder().encode(str);
+      const digest = crypto.subtle.digest('SHA-256', buffer);
+      return digest.then(hashBuffer => {
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      });
+    }
+
+    function downloadPNG() {
+      const link = document.createElement('a');
+      link.download = 'identicon.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Overwrite generateIdenticon to handle async hash properly
+    async function generateIdenticon() {
+      const tileSize = parseInt(document.getElementById('tileSize').value);
+      const input = document.getElementById('inputText').value || Math.random().toString();
+
+      const hash = await sha256(input);
+
+      const screenWidth = Math.min(window.innerWidth * 0.9, 400);
+      const cellSize = Math.floor(screenWidth / tileSize);
+      const canvasSize = cellSize * tileSize;
+
+      canvas.width = canvasSize;
+      canvas.height = canvasSize;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const color = getColorFromHash(hash);
+
+      const pattern = [];
+      for (let row = 0; row < tileSize; row++) {
+        pattern[row] = [];
+        for (let col = 0; col < Math.ceil(tileSize / 2); col++) {
+          const i = row * Math.ceil(tileSize / 2) + col;
+          const fill = parseInt(hash[i], 16) % 2 === 0;
+          pattern[row][col] = fill;
+          pattern[row][tileSize - col - 1] = fill;
+        }
+      }
+
+      for (let row = 0; row < tileSize; row++) {
+        for (let col = 0; col < tileSize; col++) {
+          if (pattern[row][col]) {
+            ctx.fillStyle = color;
+            ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+    }
+
+    window.addEventListener('resize', generateIdenticon);
+    generateIdenticon();
+  </script>
+
+</body>
+</html>
