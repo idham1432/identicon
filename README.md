@@ -1,4 +1,4 @@
-# 🎨 Identicon Generator
+# Identicon Generator
 
 A simple and responsive Identicon Generator built with HTML5 Canvas and JavaScript.  
 It creates symmetrical, colorful identicons with a transparent background, and allows users to customize the size of the identicon grid.
