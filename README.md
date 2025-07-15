@@ -22,4 +22,3 @@ It creates symmetrical, colorful identicons with a transparent background, and a
 1. Clone or download the repository:
    ```bash
    git clone https://github.com/idham1432/identicon.git
-  ```
