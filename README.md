@@ -14,7 +14,7 @@ It creates symmetrical, colorful identicons with a transparent background, and a
 
 ## 🚀 Live Demo
 
-[View Live Demo](https://your-username.idham1432.io/identicon)  
+[View Live Demo](https://idham1432.github.io/identicon/)  
 
 
 ## 📦 Usage
